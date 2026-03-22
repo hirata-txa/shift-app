@@ -31,6 +31,49 @@
     overscroll-behavior: none;
   }
 
+  /* ===== Login Screen ===== */
+  .login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .login-screen h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
+  .login-screen p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; }
+  .login-screen input {
+    width: 200px;
+    padding: 12px;
+    font-size: 1.2rem;
+    text-align: center;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    letter-spacing: 8px;
+    margin-bottom: 16px;
+  }
+  .login-screen input:focus { border-color: var(--primary); outline: none; }
+  .login-screen .btn-primary {
+    width: 200px;
+    padding: 12px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .login-screen .btn-secondary {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 8px; }
+
   /* ===== Header ===== */
   header {
     background: var(--primary);
@@ -44,12 +87,13 @@
     z-index: 100;
   }
   header h1 { font-size: 1.1rem; font-weight: 600; }
+  .header-buttons { display: flex; gap: 6px; }
   header button {
     background: rgba(255,255,255,0.2);
     border: none;
     color: #fff;
-    font-size: 0.85rem;
-    padding: 6px 12px;
+    font-size: 0.8rem;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
   }
@@ -123,11 +167,7 @@
   .sat { color: var(--primary); }
 
   /* ===== Shift Cell ===== */
-  td.shift-cell {
-    padding: 2px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+  td.shift-cell { padding: 2px; cursor: pointer; transition: background 0.15s; }
   td.shift-cell:active { background: var(--primary-light); }
   td.shift-cell input {
     width: 100%;
@@ -140,10 +180,7 @@
     outline: none;
     padding: 0;
   }
-  td.shift-cell input:focus {
-    background: #fff8e1;
-    border-radius: 2px;
-  }
+  td.shift-cell input:focus { background: #fff8e1; border-radius: 2px; }
 
   /* ===== Member Management ===== */
   .member-panel {
@@ -214,25 +251,57 @@
     cursor: pointer;
   }
 
-  /* ===== Today indicator ===== */
+  /* ===== Syncing indicator ===== */
+  .sync-status {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    background: var(--success);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 300;
+  }
+  .sync-status.show { opacity: 1; }
+
   th.today { background: #fff3bf; color: #e67700; }
+  .app-screen { display: none; }
 </style>
 </head>
 <body>
 
-<header>
+<!-- ===== Login Screen ===== -->
+<div class="login-screen" id="loginScreen">
   <h1>シフト表</h1>
-  <button onclick="openMemberPanel()">メンバー</button>
-</header>
-
-<div class="week-nav">
-  <button onclick="changeWeek(-1)">&lt; 前週</button>
-  <span id="weekLabel"></span>
-  <button onclick="changeWeek(1)">翌週 &gt;</button>
+  <p>合言葉を入力してください</p>
+  <input type="text" id="passcodeInput" maxlength="20" placeholder="合言葉" enterkeyhint="go">
+  <button class="btn-primary" onclick="doLogin()">入る</button>
+  <button class="btn-secondary" onclick="doCreate()">新しいグループを作る</button>
+  <div class="login-error" id="loginError"></div>
 </div>
 
-<div class="table-wrap">
-  <table id="shiftTable"></table>
+<!-- ===== App Screen ===== -->
+<div class="app-screen" id="appScreen">
+  <header>
+    <h1>シフト表</h1>
+    <div class="header-buttons">
+      <button onclick="openMemberPanel()">メンバー</button>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="week-nav">
+    <button onclick="changeWeek(-1)">&lt; 前週</button>
+    <span id="weekLabel"></span>
+    <button onclick="changeWeek(1)">翌週 &gt;</button>
+  </div>
+
+  <div class="table-wrap">
+    <table id="shiftTable"></table>
+  </div>
 </div>
 
 <!-- Member Panel -->
@@ -244,33 +313,130 @@
   </div>
 </div>
 
+<div class="sync-status" id="syncStatus">保存しました</div>
+
 <script>
-// ===== State =====
-const STORAGE_KEY = 'shift-app-data';
-let state = loadState();
+// ===== Supabase Config =====
+const SUPABASE_URL = 'https://fatvcblikyqkfjifuxkh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_HUl7YjaWLIud2K_QeH6rPg_3NQu4lxV';
 
-function defaultState() {
-  return {
-    members: ['田中', '鈴木', '佐藤'],
-    shifts: {},  // key: "YYYY-MM-DD_memberIndex" → value: shift text
-    weekOffset: 0
-  };
-}
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const s = JSON.parse(raw);
-      s.weekOffset = 0;
-      return s;
+function sbFetch(table, method, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  const opts = {
+    method: method || 'GET',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
     }
-  } catch(e) {}
-  return defaultState();
+  };
+  if (params?.query) {
+    Object.entries(params.query).forEach(([k, v]) => url.searchParams.set(k, v));
+  }
+  if (params?.body) {
+    opts.body = JSON.stringify(params.body);
+  }
+  return fetch(url, opts).then(r => r.json());
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+// ===== State =====
+let passcode = localStorage.getItem('shift-passcode') || '';
+let members = [];
+let shifts = {};
+let weekOffset = 0;
+
+// ===== Login =====
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+}
+
+async function doLogin() {
+  const code = document.getElementById('passcodeInput').value.trim();
+  if (!code) return;
+  passcode = code;
+  const data = await sbFetch('members', 'GET', { query: { passcode: `eq.${passcode}`, order: 'sort_order' } });
+  if (!data || data.length === 0) {
+    document.getElementById('loginError').textContent = 'この合言葉のグループは見つかりません';
+    return;
+  }
+  members = data;
+  localStorage.setItem('shift-passcode', passcode);
+  showApp();
+  await loadShifts();
+  render();
+}
+
+async function doCreate() {
+  const code = document.getElementById('passcodeInput').value.trim();
+  if (!code) {
+    document.getElementById('loginError').textContent = '合言葉を入力してください';
+    return;
+  }
+  // Check if already exists
+  const existing = await sbFetch('members', 'GET', { query: { passcode: `eq.${code}`, limit: '1' } });
+  if (existing && existing.length > 0) {
+    document.getElementById('loginError').textContent = 'この合言葉は既に使われています';
+    return;
+  }
+  passcode = code;
+  // Create default members
+  const defaults = ['メンバー1', 'メンバー2', 'メンバー3'];
+  const body = defaults.map((name, i) => ({ name, sort_order: i, passcode }));
+  members = await sbFetch('members', 'POST', { body });
+  localStorage.setItem('shift-passcode', passcode);
+  showApp();
+  render();
+}
+
+function doLogout() {
+  localStorage.removeItem('shift-passcode');
+  passcode = '';
+  members = [];
+  shifts = {};
+  showLogin();
+}
+
+// ===== Data Load/Save =====
+async function loadShifts() {
+  const data = await sbFetch('shifts', 'GET', { query: { passcode: `eq.${passcode}` } });
+  shifts = {};
+  if (data && Array.isArray(data)) {
+    data.forEach(row => {
+      shifts[row.date + '_' + row.member_index] = row.shift_text;
+    });
+  }
+}
+
+async function saveShift(date, memberIndex, text) {
+  if (text) {
+    await sbFetch('shifts', 'POST', {
+      body: { date, member_index: memberIndex, shift_text: text, passcode },
+      query: { on_conflict: 'date,member_index,passcode' }
+    });
+  } else {
+    await sbFetch('shifts', 'DELETE', {
+      query: {
+        date: `eq.${date}`,
+        member_index: `eq.${memberIndex}`,
+        passcode: `eq.${passcode}`
+      }
+    });
+  }
+  showSyncStatus();
+}
+
+function showSyncStatus() {
+  const el = document.getElementById('syncStatus');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
 }
 
 // ===== Date Helpers =====
@@ -283,17 +449,11 @@ function getMonday(offset) {
   monday.setHours(0,0,0,0);
   return monday;
 }
-
 function fmt(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
-
-function fmtShort(d) {
-  return (d.getMonth()+1) + '/' + d.getDate();
-}
-
+function fmtShort(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
 const DAY_NAMES = ['月','火','水','木','金','土','日'];
-
 function isToday(d) {
   const t = new Date();
   return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
@@ -301,38 +461,34 @@ function isToday(d) {
 
 // ===== Render =====
 function render() {
-  const monday = getMonday(state.weekOffset);
+  const monday = getMonday(weekOffset);
   const days = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(d.getDate() + i);
     days.push(d);
   }
-
-  // Week label
-  const sun = days[6];
   document.getElementById('weekLabel').textContent =
-    `${monday.getFullYear()}年 ${fmtShort(monday)} 〜 ${fmtShort(sun)}`;
+    `${monday.getFullYear()}年 ${fmtShort(monday)} 〜 ${fmtShort(days[6])}`;
 
-  // Table
   const table = document.getElementById('shiftTable');
   let html = '<thead><tr><th class="name-col">名前</th>';
   days.forEach((d, i) => {
-    const dayName = DAY_NAMES[i];
     let cls = '';
     if (i === 5) cls = 'sat';
     if (i === 6) cls = 'sun';
     if (isToday(d)) cls += ' today';
-    html += `<th class="${cls}">${fmtShort(d)}<br>${dayName}</th>`;
+    html += `<th class="${cls}">${fmtShort(d)}<br>${DAY_NAMES[i]}</th>`;
   });
   html += '</tr></thead><tbody>';
 
-  state.members.forEach((name, mi) => {
-    html += `<tr><td class="name-cell">${esc(name)}</td>`;
+  members.forEach((m, mi) => {
+    html += `<tr><td class="name-cell">${esc(m.name)}</td>`;
     days.forEach(d => {
       const key = fmt(d) + '_' + mi;
-      const val = state.shifts[key] || '';
-      html += `<td class="shift-cell"><input type="text" value="${esc(val)}" data-key="${key}"
+      const val = shifts[key] || '';
+      html += `<td class="shift-cell"><input type="text" value="${esc(val)}"
+        data-date="${fmt(d)}" data-mi="${mi}"
         onfocus="this.select()" onblur="onCellBlur(this)" enterkeyhint="done"></td>`;
     });
     html += '</tr>';
@@ -346,19 +502,18 @@ function esc(s) {
 }
 
 function onCellBlur(input) {
-  const key = input.dataset.key;
+  const date = input.dataset.date;
+  const mi = parseInt(input.dataset.mi);
   const val = input.value.trim();
-  if (val) {
-    state.shifts[key] = val;
-  } else {
-    delete state.shifts[key];
-  }
-  saveState();
+  const key = date + '_' + mi;
+  if (val) { shifts[key] = val; } else { delete shifts[key]; }
+  saveShift(date, mi, val);
 }
 
 // ===== Week Navigation =====
-function changeWeek(dir) {
-  state.weekOffset += dir;
+async function changeWeek(dir) {
+  weekOffset += dir;
+  await loadShifts();
   render();
 }
 
@@ -367,59 +522,80 @@ function openMemberPanel() {
   renderMemberList();
   document.getElementById('memberPanel').classList.add('open');
 }
-
 function closeMemberPanel() {
   document.getElementById('memberPanel').classList.remove('open');
   render();
 }
-
 function renderMemberList() {
   const ul = document.getElementById('memberList');
-  ul.innerHTML = state.members.map((name, i) =>
+  ul.innerHTML = members.map((m, i) =>
     `<li>
-      <input type="text" value="${esc(name)}" onblur="renameMember(${i}, this.value)">
+      <input type="text" value="${esc(m.name)}" onblur="renameMember(${i}, this.value)">
       <button onclick="removeMember(${i})">削除</button>
     </li>`
   ).join('');
 }
 
-function addMember() {
-  if (state.members.length >= 10) {
-    alert('メンバーは10人までです');
-    return;
-  }
-  state.members.push('新メンバー');
-  saveState();
-  renderMemberList();
-}
-
-function removeMember(i) {
-  if (!confirm(state.members[i] + ' を削除しますか？')) return;
-  state.members.splice(i, 1);
-  // Clean up shifts for removed member
-  const newShifts = {};
-  Object.entries(state.shifts).forEach(([key, val]) => {
-    const [date, idx] = key.split('_');
-    const mi = parseInt(idx);
-    if (mi < i) newShifts[key] = val;
-    else if (mi > i) newShifts[date + '_' + (mi - 1)] = val;
-    // mi === i → deleted
+async function addMember() {
+  if (members.length >= 10) { alert('メンバーは10人までです'); return; }
+  const newM = await sbFetch('members', 'POST', {
+    body: { name: '新メンバー', sort_order: members.length, passcode }
   });
-  state.shifts = newShifts;
-  saveState();
+  if (newM && newM.length > 0) members.push(newM[0]);
   renderMemberList();
+  showSyncStatus();
 }
 
-function renameMember(i, name) {
-  name = name.trim();
-  if (name) {
-    state.members[i] = name;
-    saveState();
+async function removeMember(i) {
+  if (!confirm(members[i].name + ' を削除しますか？')) return;
+  const id = members[i].id;
+  await sbFetch('members', 'DELETE', { query: { id: `eq.${id}` } });
+  // Delete shifts for this member
+  await sbFetch('shifts', 'DELETE', {
+    query: { member_index: `eq.${i}`, passcode: `eq.${passcode}` }
+  });
+  // Reindex shifts for members after deleted one
+  for (let j = i + 1; j < members.length; j++) {
+    const oldShifts = await sbFetch('shifts', 'GET', {
+      query: { member_index: `eq.${j}`, passcode: `eq.${passcode}` }
+    });
+    for (const s of (oldShifts || [])) {
+      await sbFetch('shifts', 'DELETE', { query: { id: `eq.${s.id}` } });
+      await sbFetch('shifts', 'POST', {
+        body: { date: s.date, member_index: j - 1, shift_text: s.shift_text, passcode }
+      });
+    }
   }
+  members.splice(i, 1);
+  renderMemberList();
+  showSyncStatus();
+}
+
+async function renameMember(i, name) {
+  name = name.trim();
+  if (!name) return;
+  members[i].name = name;
+  await sbFetch('members', 'PATCH', {
+    query: { id: `eq.${members[i].id}` },
+    body: { name }
+  });
+  showSyncStatus();
 }
 
 // ===== Init =====
-render();
+(async function init() {
+  if (passcode) {
+    const data = await sbFetch('members', 'GET', { query: { passcode: `eq.${passcode}`, order: 'sort_order' } });
+    if (data && data.length > 0) {
+      members = data;
+      showApp();
+      await loadShifts();
+      render();
+      return;
+    }
+  }
+  showLogin();
+})();
 
 // PWA
 if ('serviceWorker' in navigator) {
