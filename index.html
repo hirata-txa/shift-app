@@ -21,6 +21,8 @@
     --danger: #e03131;
     --success: #2f9e44;
     --cell-h: 44px;
+    --slot-on: #4a6fa5;
+    --slot-off: #f0f0f0;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -33,322 +35,180 @@
 
   /* ===== Login Screen ===== */
   .login-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; padding: 20px;
   }
   .login-screen h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
   .login-screen p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; }
   .login-screen input {
-    width: 200px;
-    padding: 12px;
-    font-size: 1.2rem;
-    text-align: center;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    letter-spacing: 8px;
-    margin-bottom: 16px;
+    width: 200px; padding: 12px; font-size: 1.2rem; text-align: center;
+    border: 2px solid var(--border); border-radius: 10px; letter-spacing: 8px; margin-bottom: 16px;
   }
   .login-screen input:focus { border-color: var(--primary); outline: none; }
   .login-screen .btn-primary {
-    width: 200px;
-    padding: 12px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-bottom: 8px;
+    width: 200px; padding: 12px; background: var(--primary); color: #fff;
+    border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; margin-bottom: 8px;
   }
   .login-screen .btn-secondary {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    cursor: pointer;
-    text-decoration: underline;
+    background: none; border: none; color: var(--text-muted);
+    font-size: 0.85rem; cursor: pointer; text-decoration: underline;
   }
   .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 8px; }
 
   /* ===== Header ===== */
   header {
-    background: var(--primary);
-    color: #fff;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: var(--primary); color: #fff; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
   }
   header h1 { font-size: 1.1rem; font-weight: 600; }
   .header-buttons { display: flex; gap: 6px; }
   header button {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: #fff;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
+    background: rgba(255,255,255,0.2); border: none; color: #fff;
+    font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; cursor: pointer;
   }
 
   /* ===== Week Nav ===== */
   .week-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; background: var(--card); border-bottom: 1px solid var(--border);
   }
   .week-nav button {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 14px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    color: var(--text);
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 14px; font-size: 0.9rem; cursor: pointer; color: var(--text);
   }
   .week-nav span { font-size: 0.95rem; font-weight: 600; }
 
-  /* ===== Shift Table ===== */
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 0 80px;
-  }
-  table {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-    background: var(--card);
-  }
+  /* ===== Week Table ===== */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0 0 80px; }
+  table { width: 100%; min-width: 600px; border-collapse: collapse; background: var(--card); }
   th, td {
-    border: 1px solid var(--border);
-    text-align: center;
-    font-size: 0.82rem;
-    height: var(--cell-h);
-    min-width: 70px;
+    border: 1px solid var(--border); text-align: center;
+    font-size: 0.82rem; height: var(--cell-h); min-width: 70px;
   }
   th {
-    background: var(--primary-light);
-    color: var(--primary);
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    padding: 6px 4px;
+    background: var(--primary-light); color: var(--primary); font-weight: 600;
+    position: sticky; top: 0; z-index: 10; padding: 6px 4px;
   }
   th.name-col {
-    position: sticky;
-    left: 0;
-    z-index: 20;
-    background: var(--primary);
-    color: #fff;
-    min-width: 80px;
+    position: sticky; left: 0; z-index: 20;
+    background: var(--primary); color: #fff; min-width: 80px;
   }
   td.name-cell {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    background: #f0f4f8;
-    font-weight: 600;
-    font-size: 0.85rem;
-    white-space: nowrap;
+    position: sticky; left: 0; z-index: 5;
+    background: #f0f4f8; font-weight: 600; font-size: 0.85rem; white-space: nowrap;
   }
   .sun { color: var(--danger); }
   .sat { color: var(--primary); }
+  th.today { background: #fff3bf; color: #e67700; }
+  th.day-header { cursor: pointer; }
+  th.day-header:active { background: var(--primary); color: #fff; }
 
-  /* ===== Shift Cell ===== */
-  td.shift-cell { padding: 2px; cursor: pointer; transition: background 0.15s; }
-  td.shift-cell:active { background: var(--primary-light); }
-  td.shift-cell input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: transparent;
-    text-align: center;
-    font-size: 0.82rem;
-    color: var(--text);
-    outline: none;
-    padding: 0;
+  /* ===== Week Cell (summary) ===== */
+  td.shift-summary {
+    padding: 4px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);
   }
-  td.shift-cell input:focus { background: #fff8e1; border-radius: 2px; }
+  td.shift-summary.has-shift { background: var(--primary-light); color: var(--primary); font-weight: 600; }
 
-  /* ===== Member Management ===== */
-  .member-panel {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 200;
-    justify-content: center;
-    align-items: flex-end;
+  /* ===== Day Detail View ===== */
+  .day-view { display: none; }
+  .day-view.active { display: block; }
+  .day-header-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border);
   }
-  .member-panel.open { display: flex; }
-  .member-sheet {
-    background: var(--card);
-    width: 100%;
-    max-height: 70vh;
-    border-radius: 16px 16px 0 0;
-    padding: 20px 16px;
-    overflow-y: auto;
+  .day-header-bar button {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 14px; font-size: 0.9rem; cursor: pointer; color: var(--text);
   }
-  .member-sheet h2 {
-    font-size: 1rem;
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .day-header-bar span { font-size: 0.95rem; font-weight: 600; }
+  .day-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0 0 80px; }
+  .day-table { width: 100%; border-collapse: collapse; background: var(--card); }
+  .day-table th, .day-table td {
+    border: 1px solid var(--border); text-align: center; font-size: 0.78rem;
+    padding: 0; height: 36px; min-width: 52px;
   }
-  .member-sheet h2 button {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-    color: var(--text-muted);
+  .day-table th {
+    background: var(--primary-light); color: var(--primary);
+    font-weight: 600; position: sticky; top: 0; z-index: 10;
+  }
+  .day-table th.time-col {
+    position: sticky; left: 0; z-index: 20;
+    background: var(--primary); color: #fff; min-width: 56px; font-size: 0.72rem;
+  }
+  .day-table td.time-cell {
+    position: sticky; left: 0; z-index: 5;
+    background: #f0f4f8; font-weight: 500; font-size: 0.72rem; white-space: nowrap;
+  }
+  .day-table td.slot {
+    cursor: pointer; transition: background 0.1s; user-select: none;
+  }
+  .day-table td.slot.on { background: var(--slot-on); }
+  .day-table td.slot.off { background: var(--slot-off); }
+  .day-table td.slot:active { opacity: 0.7; }
+
+  /* ===== Panels ===== */
+  .app-screen { display: none; }
+  .overlay-panel {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 200; justify-content: center; align-items: flex-end;
+  }
+  .overlay-panel.open { display: flex; }
+  .bottom-sheet {
+    background: var(--card); width: 100%; max-height: 70vh;
+    border-radius: 16px 16px 0 0; padding: 20px 16px; overflow-y: auto;
+  }
+  .bottom-sheet h2 {
+    font-size: 1rem; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .bottom-sheet h2 button {
+    background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);
   }
   .member-list { list-style: none; }
   .member-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
   }
   .member-list li input {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 0.9rem;
+    flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.9rem;
   }
   .member-list li button {
-    background: none;
-    border: none;
-    color: var(--danger);
-    font-size: 0.85rem;
-    margin-left: 8px;
-    cursor: pointer;
-    padding: 8px;
+    background: none; border: none; color: var(--danger);
+    font-size: 0.85rem; margin-left: 8px; cursor: pointer; padding: 8px;
   }
   .add-member {
-    margin-top: 12px;
-    width: 100%;
-    padding: 10px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
+    margin-top: 12px; width: 100%; padding: 10px; background: var(--primary);
+    color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
   }
 
-  /* ===== Syncing indicator ===== */
   .sync-status {
-    position: fixed;
-    bottom: 12px;
-    right: 12px;
-    background: var(--success);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 300;
+    position: fixed; bottom: 12px; right: 12px; background: var(--success); color: #fff;
+    padding: 6px 12px; border-radius: 20px; font-size: 0.75rem;
+    opacity: 0; transition: opacity 0.3s; z-index: 300;
   }
   .sync-status.show { opacity: 1; }
 
-  th.today { background: #fff3bf; color: #e67700; }
-  .app-screen { display: none; }
-
-  /* ===== Feedback ===== */
   .feedback-btn {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 300;
-  }
-  .feedback-panel {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 400;
-    justify-content: center;
-    align-items: flex-end;
-  }
-  .feedback-panel.open { display: flex; }
-  .feedback-sheet {
-    background: var(--card);
-    width: 100%;
-    border-radius: 16px 16px 0 0;
-    padding: 20px 16px;
-  }
-  .feedback-sheet h2 {
-    font-size: 1rem;
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .feedback-sheet h2 button {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-    color: var(--text-muted);
+    position: fixed; bottom: 16px; left: 16px; background: var(--primary); color: #fff;
+    border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.8rem;
+    cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 300;
   }
   .feedback-sheet textarea {
-    width: 100%;
-    height: 120px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 0.9rem;
-    resize: none;
-    font-family: inherit;
+    width: 100%; height: 120px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; font-size: 0.9rem; resize: none; font-family: inherit;
   }
   .feedback-sheet textarea:focus { border-color: var(--primary); outline: none; }
   .feedback-send {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
+    margin-top: 10px; width: 100%; padding: 10px; background: var(--primary);
+    color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
   }
-  .feedback-sent {
-    text-align: center;
-    color: var(--success);
-    font-size: 0.9rem;
-    margin-top: 8px;
-    display: none;
-  }
+  .feedback-sent { text-align: center; color: var(--success); font-size: 0.9rem; margin-top: 8px; display: none; }
 </style>
 </head>
 <body>
 
-<!-- ===== Login Screen ===== -->
+<!-- Login -->
 <div class="login-screen" id="loginScreen">
   <h1>シフト表</h1>
   <p>合言葉を入力してください</p>
@@ -358,41 +218,54 @@
   <div class="login-error" id="loginError"></div>
 </div>
 
-<!-- ===== App Screen ===== -->
+<!-- App -->
 <div class="app-screen" id="appScreen">
   <header>
-    <h1>シフト表</h1>
+    <h1 id="appTitle">シフト表</h1>
     <div class="header-buttons">
       <button onclick="openMemberPanel()">メンバー</button>
       <button onclick="doLogout()">退出</button>
     </div>
   </header>
 
-  <div class="week-nav">
-    <button onclick="changeWeek(-1)">&lt; 前週</button>
-    <span id="weekLabel"></span>
-    <button onclick="changeWeek(1)">翌週 &gt;</button>
+  <!-- Week View -->
+  <div id="weekView">
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">&lt; 前週</button>
+      <span id="weekLabel"></span>
+      <button onclick="changeWeek(1)">翌週 &gt;</button>
+    </div>
+    <div class="table-wrap">
+      <table id="shiftTable"></table>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table id="shiftTable"></table>
+  <!-- Day Detail View -->
+  <div class="day-view" id="dayView">
+    <div class="day-header-bar">
+      <button onclick="closeDayView()">&lt; 週に戻る</button>
+      <span id="dayLabel"></span>
+      <div style="width:80px"></div>
+    </div>
+    <div class="day-table-wrap">
+      <table class="day-table" id="dayTable"></table>
+    </div>
   </div>
 </div>
 
 <!-- Member Panel -->
-<div class="member-panel" id="memberPanel" onclick="if(event.target===this)closeMemberPanel()">
-  <div class="member-sheet">
+<div class="overlay-panel" id="memberPanel" onclick="if(event.target===this)closeMemberPanel()">
+  <div class="bottom-sheet">
     <h2>メンバー管理 <button onclick="closeMemberPanel()">×</button></h2>
     <ul class="member-list" id="memberList"></ul>
     <button class="add-member" onclick="addMember()">+ メンバーを追加</button>
   </div>
 </div>
 
-<!-- Feedback Button & Panel -->
+<!-- Feedback -->
 <button class="feedback-btn" id="feedbackBtn" onclick="openFeedback()">&#x1F4DD; 改善希望</button>
-
-<div class="feedback-panel" id="feedbackPanel" onclick="if(event.target===this)closeFeedback()">
-  <div class="feedback-sheet">
+<div class="overlay-panel" id="feedbackPanel" onclick="if(event.target===this)closeFeedback()">
+  <div class="bottom-sheet feedback-sheet">
     <h2>改善希望・ご意見 <button onclick="closeFeedback()">×</button></h2>
     <textarea id="feedbackText" placeholder="気づいたこと、改善してほしいことを書いてください"></textarea>
     <button class="feedback-send" onclick="sendFeedback()">送信</button>
@@ -403,7 +276,7 @@
 <div class="sync-status" id="syncStatus">保存しました</div>
 
 <script>
-// ===== Supabase Config =====
+// ===== Supabase =====
 const SUPABASE_URL = 'https://fatvcblikyqkfjifuxkh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HUl7YjaWLIud2K_QeH6rPg_3NQu4lxV';
 
@@ -418,20 +291,25 @@ function sbFetch(table, method, params) {
       'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
     }
   };
-  if (params?.query) {
-    Object.entries(params.query).forEach(([k, v]) => url.searchParams.set(k, v));
-  }
-  if (params?.body) {
-    opts.body = JSON.stringify(params.body);
-  }
+  if (params?.query) Object.entries(params.query).forEach(([k, v]) => url.searchParams.set(k, v));
+  if (params?.body) opts.body = JSON.stringify(params.body);
   return fetch(url, opts).then(r => r.json());
 }
+
+// ===== Time Slots =====
+const SLOTS = [];
+for (let h = 9; h <= 18; h++) {
+  SLOTS.push(String(h).padStart(2,'0') + ':00');
+  if (h < 19) SLOTS.push(String(h).padStart(2,'0') + ':30');
+}
+// 9:00, 9:30, 10:00, ..., 18:30 = 20 slots
 
 // ===== State =====
 let passcode = localStorage.getItem('shift-passcode') || '';
 let members = [];
-let shifts = {};
+let shifts = {}; // key: "date_mi" → value: "09:00,09:30,10:00,..."
 let weekOffset = 0;
+let currentDayDate = null; // null = week view, "YYYY-MM-DD" = day view
 
 // ===== Login =====
 function showLogin() {
@@ -439,7 +317,6 @@ function showLogin() {
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginError').textContent = '';
 }
-
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
@@ -458,63 +335,48 @@ async function doLogin() {
   localStorage.setItem('shift-passcode', passcode);
   showApp();
   await loadShifts();
-  render();
+  renderWeek();
 }
 
 async function doCreate() {
   const code = document.getElementById('passcodeInput').value.trim();
-  if (!code) {
-    document.getElementById('loginError').textContent = '合言葉を入力してください';
-    return;
-  }
-  // Check if already exists
+  if (!code) { document.getElementById('loginError').textContent = '合言葉を入力してください'; return; }
   const existing = await sbFetch('members', 'GET', { query: { passcode: `eq.${code}`, limit: '1' } });
   if (existing && existing.length > 0) {
-    document.getElementById('loginError').textContent = 'この合言葉は既に使われています';
-    return;
+    document.getElementById('loginError').textContent = 'この合言葉は既に使われています'; return;
   }
   passcode = code;
-  // Create default members
   const defaults = ['メンバー1', 'メンバー2', 'メンバー3'];
-  const body = defaults.map((name, i) => ({ name, sort_order: i, passcode }));
-  members = await sbFetch('members', 'POST', { body });
+  members = await sbFetch('members', 'POST', { body: defaults.map((name, i) => ({ name, sort_order: i, passcode })) });
   localStorage.setItem('shift-passcode', passcode);
   showApp();
-  render();
+  renderWeek();
 }
 
 function doLogout() {
   localStorage.removeItem('shift-passcode');
-  passcode = '';
-  members = [];
-  shifts = {};
+  passcode = ''; members = []; shifts = {};
   showLogin();
 }
 
-// ===== Data Load/Save =====
+// ===== Data =====
 async function loadShifts() {
   const data = await sbFetch('shifts', 'GET', { query: { passcode: `eq.${passcode}` } });
   shifts = {};
   if (data && Array.isArray(data)) {
-    data.forEach(row => {
-      shifts[row.date + '_' + row.member_index] = row.shift_text;
-    });
+    data.forEach(row => { shifts[row.date + '_' + row.member_index] = row.shift_text; });
   }
 }
 
-async function saveShift(date, memberIndex, text) {
-  if (text) {
+async function saveShift(date, mi, slotStr) {
+  if (slotStr) {
     await sbFetch('shifts', 'POST', {
-      body: { date, member_index: memberIndex, shift_text: text, passcode },
+      body: { date, member_index: mi, shift_text: slotStr, passcode },
       query: { on_conflict: 'date,member_index,passcode' }
     });
   } else {
     await sbFetch('shifts', 'DELETE', {
-      query: {
-        date: `eq.${date}`,
-        member_index: `eq.${memberIndex}`,
-        passcode: `eq.${passcode}`
-      }
+      query: { date: `eq.${date}`, member_index: `eq.${mi}`, passcode: `eq.${passcode}` }
     });
   }
   showSyncStatus();
@@ -545,9 +407,35 @@ function isToday(d) {
   const t = new Date();
   return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
 }
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function dayOfWeekName(d) {
+  const idx = (d.getDay() + 6) % 7; // Mon=0
+  return DAY_NAMES[idx];
+}
 
-// ===== Render =====
-function render() {
+// ===== Slot Helpers =====
+function slotsToSummary(slotStr) {
+  if (!slotStr) return '';
+  const arr = slotStr.split(',').filter(Boolean).sort();
+  if (arr.length === 0) return '';
+  return arr[0] + '-' + addMinutes(arr[arr.length - 1], 30);
+}
+
+function addMinutes(timeStr, min) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + min;
+  return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+}
+
+// ===== Week View =====
+function renderWeek() {
+  currentDayDate = null;
+  document.getElementById('weekView').style.display = '';
+  document.getElementById('dayView').classList.remove('active');
+
   const monday = getMonday(weekOffset);
   const days = [];
   for (let i = 0; i < 7; i++) {
@@ -561,11 +449,11 @@ function render() {
   const table = document.getElementById('shiftTable');
   let html = '<thead><tr><th class="name-col">名前</th>';
   days.forEach((d, i) => {
-    let cls = '';
-    if (i === 5) cls = 'sat';
-    if (i === 6) cls = 'sun';
+    let cls = 'day-header';
+    if (i === 5) cls += ' sat';
+    if (i === 6) cls += ' sun';
     if (isToday(d)) cls += ' today';
-    html += `<th class="${cls}">${fmtShort(d)}<br>${DAY_NAMES[i]}</th>`;
+    html += `<th class="${cls}" onclick="openDayView('${fmt(d)}')">${fmtShort(d)}<br>${DAY_NAMES[i]}</th>`;
   });
   html += '</tr></thead><tbody>';
 
@@ -574,9 +462,9 @@ function render() {
     days.forEach(d => {
       const key = fmt(d) + '_' + mi;
       const val = shifts[key] || '';
-      html += `<td class="shift-cell"><input type="text" value="${esc(val)}"
-        data-date="${fmt(d)}" data-mi="${mi}"
-        onfocus="this.select()" onblur="onCellBlur(this)" enterkeyhint="done"></td>`;
+      const summary = slotsToSummary(val);
+      const cls = summary ? 'shift-summary has-shift' : 'shift-summary';
+      html += `<td class="${cls}" onclick="openDayView('${fmt(d)}')">${esc(summary)}</td>`;
     });
     html += '</tr>';
   });
@@ -584,24 +472,78 @@ function render() {
   table.innerHTML = html;
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ===== Day Detail View =====
+function openDayView(dateStr) {
+  currentDayDate = dateStr;
+  document.getElementById('weekView').style.display = 'none';
+  document.getElementById('dayView').classList.add('active');
+
+  const d = parseDate(dateStr);
+  document.getElementById('dayLabel').textContent =
+    `${d.getFullYear()}/${fmtShort(d)}（${dayOfWeekName(d)}）`;
+
+  renderDayTable();
 }
 
-function onCellBlur(input) {
-  const date = input.dataset.date;
-  const mi = parseInt(input.dataset.mi);
-  const val = input.value.trim();
-  const key = date + '_' + mi;
-  if (val) { shifts[key] = val; } else { delete shifts[key]; }
-  saveShift(date, mi, val);
+function closeDayView() {
+  document.getElementById('dayView').classList.remove('active');
+  document.getElementById('weekView').style.display = '';
+  currentDayDate = null;
+  renderWeek();
+}
+
+function renderDayTable() {
+  const table = document.getElementById('dayTable');
+  let html = '<thead><tr><th class="time-col">時間</th>';
+  members.forEach(m => {
+    html += `<th>${esc(m.name)}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  SLOTS.forEach(slot => {
+    html += `<tr><td class="time-cell">${slot}</td>`;
+    members.forEach((m, mi) => {
+      const key = currentDayDate + '_' + mi;
+      const val = shifts[key] || '';
+      const isOn = val.split(',').includes(slot);
+      const cls = isOn ? 'slot on' : 'slot off';
+      html += `<td class="${cls}" data-mi="${mi}" data-slot="${slot}" onclick="toggleSlot(this)"></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+async function toggleSlot(td) {
+  const mi = parseInt(td.dataset.mi);
+  const slot = td.dataset.slot;
+  const key = currentDayDate + '_' + mi;
+  let arr = (shifts[key] || '').split(',').filter(Boolean);
+
+  if (arr.includes(slot)) {
+    arr = arr.filter(s => s !== slot);
+    td.className = 'slot off';
+  } else {
+    arr.push(slot);
+    td.className = 'slot on';
+  }
+  arr.sort();
+
+  const slotStr = arr.join(',');
+  if (slotStr) { shifts[key] = slotStr; } else { delete shifts[key]; }
+  await saveShift(currentDayDate, mi, slotStr || null);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ===== Week Navigation =====
 async function changeWeek(dir) {
   weekOffset += dir;
   await loadShifts();
-  render();
+  renderWeek();
 }
 
 // ===== Member Management =====
@@ -613,18 +555,14 @@ function openMemberPanel() {
 function closeMemberPanel() {
   document.getElementById('memberPanel').classList.remove('open');
   document.getElementById('feedbackBtn').style.display = '';
-  render();
+  if (currentDayDate) renderDayTable(); else renderWeek();
 }
 function renderMemberList() {
-  const ul = document.getElementById('memberList');
-  ul.innerHTML = members.map((m, i) =>
-    `<li>
-      <input type="text" value="${esc(m.name)}" onblur="renameMember(${i}, this.value)">
-      <button onclick="removeMember(${i})">削除</button>
-    </li>`
+  document.getElementById('memberList').innerHTML = members.map((m, i) =>
+    `<li><input type="text" value="${esc(m.name)}" onblur="renameMember(${i}, this.value)">
+     <button onclick="removeMember(${i})">削除</button></li>`
   ).join('');
 }
-
 async function addMember() {
   if (members.length >= 10) { alert('メンバーは10人までです'); return; }
   const newM = await sbFetch('members', 'POST', {
@@ -634,21 +572,13 @@ async function addMember() {
   renderMemberList();
   showSyncStatus();
 }
-
 async function removeMember(i) {
   if (!confirm(members[i].name + ' を削除しますか？')) return;
-  const id = members[i].id;
-  await sbFetch('members', 'DELETE', { query: { id: `eq.${id}` } });
-  // Delete shifts for this member
-  await sbFetch('shifts', 'DELETE', {
-    query: { member_index: `eq.${i}`, passcode: `eq.${passcode}` }
-  });
-  // Reindex shifts for members after deleted one
+  await sbFetch('members', 'DELETE', { query: { id: `eq.${members[i].id}` } });
+  await sbFetch('shifts', 'DELETE', { query: { member_index: `eq.${i}`, passcode: `eq.${passcode}` } });
   for (let j = i + 1; j < members.length; j++) {
-    const oldShifts = await sbFetch('shifts', 'GET', {
-      query: { member_index: `eq.${j}`, passcode: `eq.${passcode}` }
-    });
-    for (const s of (oldShifts || [])) {
+    const old = await sbFetch('shifts', 'GET', { query: { member_index: `eq.${j}`, passcode: `eq.${passcode}` } });
+    for (const s of (old || [])) {
       await sbFetch('shifts', 'DELETE', { query: { id: `eq.${s.id}` } });
       await sbFetch('shifts', 'POST', {
         body: { date: s.date, member_index: j - 1, shift_text: s.shift_text, passcode }
@@ -659,15 +589,11 @@ async function removeMember(i) {
   renderMemberList();
   showSyncStatus();
 }
-
 async function renameMember(i, name) {
   name = name.trim();
   if (!name) return;
   members[i].name = name;
-  await sbFetch('members', 'PATCH', {
-    query: { id: `eq.${members[i].id}` },
-    body: { name }
-  });
+  await sbFetch('members', 'PATCH', { query: { id: `eq.${members[i].id}` }, body: { name } });
   showSyncStatus();
 }
 
@@ -677,15 +603,11 @@ function openFeedback() {
   document.getElementById('feedbackText').value = '';
   document.getElementById('feedbackSent').style.display = 'none';
 }
-function closeFeedback() {
-  document.getElementById('feedbackPanel').classList.remove('open');
-}
+function closeFeedback() { document.getElementById('feedbackPanel').classList.remove('open'); }
 async function sendFeedback() {
   const msg = document.getElementById('feedbackText').value.trim();
   if (!msg) return;
-  await sbFetch('feedback', 'POST', {
-    body: { passcode: passcode || 'anonymous', message: msg }
-  });
+  await sbFetch('feedback', 'POST', { body: { passcode: passcode || 'anonymous', message: msg } });
   document.getElementById('feedbackText').value = '';
   document.getElementById('feedbackSent').style.display = 'block';
   setTimeout(() => closeFeedback(), 1500);
@@ -699,17 +621,14 @@ async function sendFeedback() {
       members = data;
       showApp();
       await loadShifts();
-      render();
+      renderWeek();
       return;
     }
   }
   showLogin();
 })();
 
-// PWA
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>
