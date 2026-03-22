@@ -608,9 +608,11 @@ async function changeWeek(dir) {
 function openMemberPanel() {
   renderMemberList();
   document.getElementById('memberPanel').classList.add('open');
+  document.getElementById('feedbackBtn').style.display = 'none';
 }
 function closeMemberPanel() {
   document.getElementById('memberPanel').classList.remove('open');
+  document.getElementById('feedbackBtn').style.display = '';
   render();
 }
 function renderMemberList() {
