@@ -413,8 +413,16 @@ function parseDate(str) {
   return new Date(y, m - 1, d);
 }
 function dayOfWeekName(d) {
-  const idx = (d.getDay() + 6) % 7; // Mon=0
+  const idx = (d.getDay() + 6) % 7;
   return DAY_NAMES[idx];
+}
+
+function getCurrentTimeSlot() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const roundedM = m < 30 ? '00' : '30';
+  return String(h).padStart(2, '0') + ':' + roundedM;
 }
 
 // ===== Slot Helpers =====
@@ -525,6 +533,14 @@ function openDayView(dateStr) {
   document.getElementById('weekView').style.display = 'none';
   document.getElementById('dayView').classList.add('active');
   renderDayTable();
+  scrollToCurrentTime();
+}
+
+function scrollToCurrentTime() {
+  setTimeout(() => {
+    const nowTh = document.querySelector('#dayTable th.today');
+    if (nowTh) nowTh.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+  }, 100);
 }
 
 function closeDayView() {
@@ -544,6 +560,7 @@ function changeDayPage(dir) {
 function goToday() {
   currentDayDate = fmt(new Date());
   renderDayTable();
+  scrollToCurrentTime();
 }
 
 function renderDayTable() {
@@ -554,8 +571,10 @@ function renderDayTable() {
 
   const table = document.getElementById('dayTable');
   let html = '<thead><tr><th class="time-col">名前</th>';
+  const nowTime = getCurrentTimeSlot();
   SLOTS.forEach(slot => {
-    html += `<th>${slot}</th>`;
+    const nowCls = (isToday(d) && slot === nowTime) ? ' today' : '';
+    html += `<th class="${nowCls}">${slot}</th>`;
   });
   html += '</tr></thead><tbody>';
 
