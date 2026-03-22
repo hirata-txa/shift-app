@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4a6fa5">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>シフト表</title>
+<style>
+  :root {
+    --primary: #4a6fa5;
+    --primary-light: #e8eef6;
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #dee2e6;
+    --text: #212529;
+    --text-muted: #868e96;
+    --danger: #e03131;
+    --success: #2f9e44;
+    --cell-h: 44px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.4;
+    overscroll-behavior: none;
+  }
+
+  /* ===== Header ===== */
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 { font-size: 1.1rem; font-weight: 600; }
+  header button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* ===== Week Nav ===== */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .week-nav button {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .week-nav span { font-size: 0.95rem; font-weight: 600; }
+
+  /* ===== Shift Table ===== */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0 80px;
+  }
+  table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    background: var(--card);
+  }
+  th, td {
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.82rem;
+    height: var(--cell-h);
+    min-width: 70px;
+  }
+  th {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 6px 4px;
+  }
+  th.name-col {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background: var(--primary);
+    color: #fff;
+    min-width: 80px;
+  }
+  td.name-cell {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: #f0f4f8;
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .sun { color: var(--danger); }
+  .sat { color: var(--primary); }
+
+  /* ===== Shift Cell ===== */
+  td.shift-cell {
+    padding: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  td.shift-cell:active { background: var(--primary-light); }
+  td.shift-cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text);
+    outline: none;
+    padding: 0;
+  }
+  td.shift-cell input:focus {
+    background: #fff8e1;
+    border-radius: 2px;
+  }
+
+  /* ===== Member Management ===== */
+  .member-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .member-panel.open { display: flex; }
+  .member-sheet {
+    background: var(--card);
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+  .member-sheet h2 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .member-sheet h2 button {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .member-list { list-style: none; }
+  .member-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .member-list li input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+  .member-list li button {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-left: 8px;
+    cursor: pointer;
+    padding: 8px;
+  }
+  .add-member {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  /* ===== Today indicator ===== */
+  th.today { background: #fff3bf; color: #e67700; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>シフト表</h1>
+  <button onclick="openMemberPanel()">メンバー</button>
+</header>
+
+<div class="week-nav">
+  <button onclick="changeWeek(-1)">&lt; 前週</button>
+  <span id="weekLabel"></span>
+  <button onclick="changeWeek(1)">翌週 &gt;</button>
+</div>
+
+<div class="table-wrap">
+  <table id="shiftTable"></table>
+</div>
+
+<!-- Member Panel -->
+<div class="member-panel" id="memberPanel" onclick="if(event.target===this)closeMemberPanel()">
+  <div class="member-sheet">
+    <h2>メンバー管理 <button onclick="closeMemberPanel()">×</button></h2>
+    <ul class="member-list" id="memberList"></ul>
+    <button class="add-member" onclick="addMember()">+ メンバーを追加</button>
+  </div>
+</div>
+
+<script>
+// ===== State =====
+const STORAGE_KEY = 'shift-app-data';
+let state = loadState();
+
+function defaultState() {
+  return {
+    members: ['田中', '鈴木', '佐藤'],
+    shifts: {},  // key: "YYYY-MM-DD_memberIndex" → value: shift text
+    weekOffset: 0
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      s.weekOffset = 0;
+      return s;
+    }
+  } catch(e) {}
+  return defaultState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ===== Date Helpers =====
+function getMonday(offset) {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  monday.setDate(monday.getDate() + offset * 7);
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+
+function fmt(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function fmtShort(d) {
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+const DAY_NAMES = ['月','火','水','木','金','土','日'];
+
+function isToday(d) {
+  const t = new Date();
+  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+}
+
+// ===== Render =====
+function render() {
+  const monday = getMonday(state.weekOffset);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+
+  // Week label
+  const sun = days[6];
+  document.getElementById('weekLabel').textContent =
+    `${monday.getFullYear()}年 ${fmtShort(monday)} 〜 ${fmtShort(sun)}`;
+
+  // Table
+  const table = document.getElementById('shiftTable');
+  let html = '<thead><tr><th class="name-col">名前</th>';
+  days.forEach((d, i) => {
+    const dayName = DAY_NAMES[i];
+    let cls = '';
+    if (i === 5) cls = 'sat';
+    if (i === 6) cls = 'sun';
+    if (isToday(d)) cls += ' today';
+    html += `<th class="${cls}">${fmtShort(d)}<br>${dayName}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  state.members.forEach((name, mi) => {
+    html += `<tr><td class="name-cell">${esc(name)}</td>`;
+    days.forEach(d => {
+      const key = fmt(d) + '_' + mi;
+      const val = state.shifts[key] || '';
+      html += `<td class="shift-cell"><input type="text" value="${esc(val)}" data-key="${key}"
+        onfocus="this.select()" onblur="onCellBlur(this)" enterkeyhint="done"></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function onCellBlur(input) {
+  const key = input.dataset.key;
+  const val = input.value.trim();
+  if (val) {
+    state.shifts[key] = val;
+  } else {
+    delete state.shifts[key];
+  }
+  saveState();
+}
+
+// ===== Week Navigation =====
+function changeWeek(dir) {
+  state.weekOffset += dir;
+  render();
+}
+
+// ===== Member Management =====
+function openMemberPanel() {
+  renderMemberList();
+  document.getElementById('memberPanel').classList.add('open');
+}
+
+function closeMemberPanel() {
+  document.getElementById('memberPanel').classList.remove('open');
+  render();
+}
+
+function renderMemberList() {
+  const ul = document.getElementById('memberList');
+  ul.innerHTML = state.members.map((name, i) =>
+    `<li>
+      <input type="text" value="${esc(name)}" onblur="renameMember(${i}, this.value)">
+      <button onclick="removeMember(${i})">削除</button>
+    </li>`
+  ).join('');
+}
+
+function addMember() {
+  if (state.members.length >= 10) {
+    alert('メンバーは10人までです');
+    return;
+  }
+  state.members.push('新メンバー');
+  saveState();
+  renderMemberList();
+}
+
+function removeMember(i) {
+  if (!confirm(state.members[i] + ' を削除しますか？')) return;
+  state.members.splice(i, 1);
+  // Clean up shifts for removed member
+  const newShifts = {};
+  Object.entries(state.shifts).forEach(([key, val]) => {
+    const [date, idx] = key.split('_');
+    const mi = parseInt(idx);
+    if (mi < i) newShifts[key] = val;
+    else if (mi > i) newShifts[date + '_' + (mi - 1)] = val;
+    // mi === i → deleted
+  });
+  state.shifts = newShifts;
+  saveState();
+  renderMemberList();
+}
+
+function renameMember(i, name) {
+  name = name.trim();
+  if (name) {
+    state.members[i] = name;
+    saveState();
+  }
+}
+
+// ===== Init =====
+render();
+
+// PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
+</body>
+</html>
