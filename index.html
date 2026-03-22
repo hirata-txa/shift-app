@@ -77,7 +77,10 @@
     background: none; border: 1px solid var(--border); border-radius: 6px;
     padding: 6px 14px; font-size: 0.9rem; cursor: pointer; color: var(--text);
   }
-  .week-nav span { font-size: 0.95rem; font-weight: 600; }
+  .week-nav input[type="date"] {
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+    font-size: 0.9rem; font-family: inherit; color: var(--text);
+  }
 
   /* ===== Week Table ===== */
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0 0 80px; }
@@ -233,9 +236,9 @@
   <!-- Week View -->
   <div id="weekView">
     <div class="week-nav">
-      <button onclick="changeWeek(-1)">&lt; 前週</button>
-      <span id="weekLabel"></span>
-      <button onclick="changeWeek(1)">翌週 &gt;</button>
+      <button onclick="jumpToday()">今日</button>
+      <input type="date" id="weekStartDate" onchange="jumpToDate(this.value)">
+      <button onclick="openDayView()">日別</button>
     </div>
     <div class="table-wrap">
       <table id="shiftTable"></table>
@@ -314,9 +317,10 @@ for (let h = 9; h <= 18; h++) {
 let passcode = localStorage.getItem('shift-passcode') || '';
 let members = [];
 let shifts = {}; // key: "date_mi" → value: "09:00,09:30,10:00,..."
-let weekOffset = 0;
+let weekStartDate = null; // Monday of current view
 let currentDayDate = null; // null = week view, "YYYY-MM-DD" = day view start date
 const DAY_PAGE_SIZE = 4;
+const WEEK_DISPLAY_WEEKS = 52; // 1 year
 
 // ===== Login =====
 function showLogin() {
@@ -396,15 +400,6 @@ function showSyncStatus() {
 }
 
 // ===== Date Helpers =====
-function getMonday(offset) {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.setDate(diff));
-  monday.setDate(monday.getDate() + offset * 7);
-  monday.setHours(0,0,0,0);
-  return monday;
-}
 function fmt(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -438,45 +433,91 @@ function addMinutes(timeStr, min) {
 }
 
 // ===== Week View =====
+function getThisMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+
+function initWeekStart() {
+  if (!weekStartDate) weekStartDate = getThisMonday();
+}
+
+function jumpToday() {
+  weekStartDate = getThisMonday();
+  document.getElementById('weekStartDate').value = fmt(weekStartDate);
+  renderWeek();
+  scrollToToday();
+}
+
+function jumpToDate(dateStr) {
+  if (!dateStr) return;
+  const d = parseDate(dateStr);
+  // Find Monday of that week
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  weekStartDate = new Date(d.getFullYear(), d.getMonth(), diff);
+  renderWeek();
+  scrollToToday();
+}
+
+function scrollToToday() {
+  setTimeout(() => {
+    const todayTh = document.querySelector('th.today');
+    if (todayTh) todayTh.scrollIntoView({ inline: 'start', behavior: 'smooth' });
+  }, 100);
+}
+
 function renderWeek() {
   currentDayDate = null;
   document.getElementById('weekView').style.display = '';
   document.getElementById('dayView').classList.remove('active');
+  initWeekStart();
 
-  const monday = getMonday(weekOffset);
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
+  document.getElementById('weekStartDate').value = fmt(weekStartDate);
+
+  // Generate all days for WEEK_DISPLAY_WEEKS weeks
+  const allDays = [];
+  const start = new Date(weekStartDate);
+  for (let i = 0; i < WEEK_DISPLAY_WEEKS * 7; i++) {
+    const d = new Date(start);
     d.setDate(d.getDate() + i);
-    days.push(d);
+    allDays.push(d);
   }
-  document.getElementById('weekLabel').textContent =
-    `${monday.getFullYear()}年 ${fmtShort(monday)} 〜 ${fmtShort(days[6])}`;
 
   const table = document.getElementById('shiftTable');
   let html = '<thead><tr><th class="name-col">名前</th>';
-  days.forEach((d, i) => {
+  allDays.forEach(d => {
+    const dowIdx = (d.getDay() + 6) % 7;
     let cls = 'day-header';
-    if (i === 5) cls += ' sat';
-    if (i === 6) cls += ' sun';
+    if (dowIdx === 5) cls += ' sat';
+    if (dowIdx === 6) cls += ' sun';
     if (isToday(d)) cls += ' today';
-    html += `<th class="${cls}" onclick="openDayView('${fmt(d)}')">${fmtShort(d)}<br>${DAY_NAMES[i]}</th>`;
+    const monthLabel = d.getDate() === 1 || allDays.indexOf(d) === 0
+      ? `<span style="font-size:0.65rem;color:var(--text-muted)">${d.getMonth()+1}月</span><br>` : '';
+    html += `<th class="${cls}" onclick="openDayView('${fmt(d)}')" style="min-width:48px;padding:4px 2px;font-size:0.72rem;">` +
+      `${monthLabel}${d.getDate()}<br>${DAY_NAMES[dowIdx]}</th>`;
   });
   html += '</tr></thead><tbody>';
 
   members.forEach((m, mi) => {
     html += `<tr><td class="name-cell">${esc(m.name)}</td>`;
-    days.forEach(d => {
+    allDays.forEach(d => {
       const key = fmt(d) + '_' + mi;
       const val = shifts[key] || '';
       const summary = slotsToSummary(val);
       const cls = summary ? 'shift-summary has-shift' : 'shift-summary';
-      html += `<td class="${cls}" onclick="openDayView('${fmt(d)}')">${esc(summary)}</td>`;
+      html += `<td class="${cls}" onclick="openDayView('${fmt(d)}')" style="min-width:48px;font-size:0.7rem;">${esc(summary)}</td>`;
     });
     html += '</tr>';
   });
   html += '</tbody>';
   table.innerHTML = html;
+
+  scrollToToday();
 }
 
 // ===== Day Detail View =====
@@ -593,12 +634,7 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ===== Week Navigation =====
-async function changeWeek(dir) {
-  weekOffset += dir;
-  await loadShifts();
-  renderWeek();
-}
+// ===== (Week navigation handled by date picker + jumpToday) =====
 
 // ===== Member Management =====
 function openMemberPanel() {
