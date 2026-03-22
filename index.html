@@ -209,6 +209,44 @@
     color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
   }
   .feedback-sent { text-align: center; color: var(--success); font-size: 0.9rem; margin-top: 8px; display: none; }
+
+  /* ===== Feedback List ===== */
+  .fb-list-panel {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 400; justify-content: center; align-items: flex-end;
+  }
+  .fb-list-panel.open { display: flex; }
+  .fb-list-sheet {
+    background: var(--card); width: 100%; max-height: 85vh;
+    border-radius: 16px 16px 0 0; padding: 16px; overflow-y: auto;
+  }
+  .fb-list-sheet h2 {
+    font-size: 1rem; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .fb-list-sheet h2 button {
+    background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);
+  }
+  .fb-item {
+    background: var(--bg); border-radius: 10px; padding: 12px;
+    margin-bottom: 10px;
+  }
+  .fb-item-msg { font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; white-space: pre-wrap; }
+  .fb-item-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.75rem; color: var(--text-muted);
+  }
+  .fb-like-btn {
+    background: none; border: 1px solid var(--border); border-radius: 16px;
+    padding: 4px 12px; font-size: 0.8rem; cursor: pointer; color: var(--text);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .fb-like-btn.liked { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+  .fb-write-btn {
+    margin-top: 8px; width: 100%; padding: 10px; background: var(--primary);
+    color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
+  }
+  .fb-empty { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -229,6 +267,7 @@
     <h1 id="appTitle">シフト表</h1>
     <div class="header-buttons">
       <button onclick="openMemberPanel()">メンバー</button>
+      <button onclick="openFeedbackList()">声</button>
       <button onclick="doLogout()">退出</button>
     </div>
   </header>
@@ -279,6 +318,15 @@
     <textarea id="feedbackText" placeholder="気づいたこと、改善してほしいことを書いてください"></textarea>
     <button class="feedback-send" onclick="sendFeedback()">送信</button>
     <div class="feedback-sent" id="feedbackSent">送信しました！</div>
+  </div>
+</div>
+
+<!-- Feedback List -->
+<div class="fb-list-panel" id="fbListPanel" onclick="if(event.target===this)closeFeedbackList()">
+  <div class="fb-list-sheet">
+    <h2>みんなの声 <button onclick="closeFeedbackList()">×</button></h2>
+    <div id="fbListContent"></div>
+    <button class="fb-write-btn" onclick="closeFeedbackList();openFeedback()">改善希望を書く</button>
   </div>
 </div>
 
@@ -664,7 +712,66 @@ async function sendFeedback() {
   await sbFetch('feedback', 'POST', { body: { passcode: passcode || 'anonymous', message: msg } });
   document.getElementById('feedbackText').value = '';
   document.getElementById('feedbackSent').style.display = 'block';
-  setTimeout(() => closeFeedback(), 1500);
+  setTimeout(() => { closeFeedback(); openFeedbackList(); }, 1200);
+}
+
+// ===== Feedback List =====
+let likedIds = JSON.parse(localStorage.getItem('shift-liked') || '[]');
+
+async function openFeedbackList() {
+  document.getElementById('fbListPanel').classList.add('open');
+  document.getElementById('feedbackBtn').style.display = 'none';
+  await renderFeedbackList();
+}
+function closeFeedbackList() {
+  document.getElementById('fbListPanel').classList.remove('open');
+  document.getElementById('feedbackBtn').style.display = '';
+}
+
+async function renderFeedbackList() {
+  const data = await sbFetch('feedback', 'GET', { query: { order: 'created_at.desc' } });
+  const container = document.getElementById('fbListContent');
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="fb-empty">まだ投稿がありません</div>';
+    return;
+  }
+  container.innerHTML = data.map(fb => {
+    const date = new Date(fb.created_at);
+    const dateStr = `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+    const isLiked = likedIds.includes(fb.id);
+    const likedCls = isLiked ? ' liked' : '';
+    return `<div class="fb-item">
+      <div class="fb-item-msg">${esc(fb.message)}</div>
+      <div class="fb-item-footer">
+        <span>${dateStr}</span>
+        <button class="fb-like-btn${likedCls}" onclick="toggleLike(${fb.id}, this)">
+          ${isLiked ? '&#x1F44D;' : '&#x1F44D;'} <span>${fb.likes || 0}</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleLike(id, btn) {
+  const idx = likedIds.indexOf(id);
+  let delta;
+  if (idx >= 0) {
+    likedIds.splice(idx, 1);
+    delta = -1;
+    btn.classList.remove('liked');
+  } else {
+    likedIds.push(id);
+    delta = 1;
+    btn.classList.add('liked');
+  }
+  localStorage.setItem('shift-liked', JSON.stringify(likedIds));
+
+  // Get current likes count and update
+  const current = await sbFetch('feedback', 'GET', { query: { id: `eq.${id}`, select: 'likes' } });
+  const currentLikes = (current && current[0]) ? (current[0].likes || 0) : 0;
+  const newLikes = Math.max(0, currentLikes + delta);
+  await sbFetch('feedback', 'PATCH', { query: { id: `eq.${id}` }, body: { likes: newLikes } });
+  btn.querySelector('span').textContent = newLikes;
 }
 
 // ===== Init =====
