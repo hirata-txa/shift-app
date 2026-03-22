@@ -440,42 +440,24 @@ function addMinutes(timeStr, min) {
 }
 
 // ===== Week View =====
-function getThisMonday() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-  monday.setHours(0,0,0,0);
-  return monday;
-}
-
 function initWeekStart() {
-  if (!weekStartDate) weekStartDate = getThisMonday();
+  if (!weekStartDate) {
+    weekStartDate = new Date();
+    weekStartDate.setHours(0,0,0,0);
+  }
 }
 
 function jumpToday() {
-  weekStartDate = getThisMonday();
+  weekStartDate = new Date();
+  weekStartDate.setHours(0,0,0,0);
   document.getElementById('weekStartDate').value = fmt(weekStartDate);
   renderWeek();
-  scrollToToday();
 }
 
 function jumpToDate(dateStr) {
   if (!dateStr) return;
-  const d = parseDate(dateStr);
-  // Find Monday of that week
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  weekStartDate = new Date(d.getFullYear(), d.getMonth(), diff);
+  weekStartDate = parseDate(dateStr);
   renderWeek();
-  scrollToToday();
-}
-
-function scrollToToday() {
-  setTimeout(() => {
-    const todayTh = document.querySelector('th.today');
-    if (todayTh) todayTh.scrollIntoView({ inline: 'start', behavior: 'smooth' });
-  }, 100);
 }
 
 function renderWeek() {
@@ -523,8 +505,6 @@ function renderWeek() {
   });
   html += '</tbody>';
   table.innerHTML = html;
-
-  scrollToToday();
 }
 
 // ===== Day Detail View =====
