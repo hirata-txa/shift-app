@@ -248,11 +248,11 @@
   <!-- Day Detail View -->
   <div class="day-view" id="dayView">
     <div class="day-header-bar">
-      <button class="back-btn" onclick="closeDayView()">&lt; 週</button>
+      <button class="back-btn" onclick="closeDayView()">&lt; 一覧</button>
       <div class="day-nav">
-        <button onclick="changeDayPage(-1)">&lt;</button>
+        <button onclick="changeDayPage(-1)">&lt; 前日</button>
         <span id="dayLabel"></span>
-        <button onclick="changeDayPage(1)">&gt;</button>
+        <button onclick="changeDayPage(1)">翌日 &gt;</button>
       </div>
       <button class="back-btn" onclick="goToday()">今日</button>
     </div>
@@ -318,8 +318,7 @@ let passcode = localStorage.getItem('shift-passcode') || '';
 let members = [];
 let shifts = {}; // key: "date_mi" → value: "09:00,09:30,10:00,..."
 let weekStartDate = null; // Monday of current view
-let currentDayDate = null; // null = week view, "YYYY-MM-DD" = day view start date
-const DAY_PAGE_SIZE = 4;
+let currentDayDate = null; // null = week view, "YYYY-MM-DD" = day view
 const WEEK_DISPLAY_WEEKS = 52; // 1 year
 
 // ===== Login =====
@@ -537,7 +536,7 @@ function closeDayView() {
 
 function changeDayPage(dir) {
   const d = parseDate(currentDayDate);
-  d.setDate(d.getDate() + dir * DAY_PAGE_SIZE);
+  d.setDate(d.getDate() + dir);
   currentDayDate = fmt(d);
   renderDayTable();
 }
@@ -548,60 +547,26 @@ function goToday() {
 }
 
 function renderDayTable() {
-  // Build array of dates for this page
-  const startDate = parseDate(currentDayDate);
-  const pageDays = [];
-  for (let i = 0; i < DAY_PAGE_SIZE; i++) {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + i);
-    pageDays.push(d);
-  }
-
-  // Update label
-  const last = pageDays[pageDays.length - 1];
+  const d = parseDate(currentDayDate);
+  const dowIdx = (d.getDay() + 6) % 7;
   document.getElementById('dayLabel').textContent =
-    `${fmtShort(startDate)} 〜 ${fmtShort(last)}`;
+    `${d.getFullYear()}/${fmtShort(d)}（${DAY_NAMES[dowIdx]}）`;
 
   const table = document.getElementById('dayTable');
-
-  // Header row 1: dates spanning across slots
-  let html = '<thead>';
-  // Date header row
-  html += '<tr><th class="time-col" rowspan="2">名前</th>';
-  pageDays.forEach(d => {
-    const todayCls = isToday(d) ? ' today' : '';
-    const dowIdx = (d.getDay() + 6) % 7;
-    let dayCls = '';
-    if (dowIdx === 5) dayCls = ' sat';
-    if (dowIdx === 6) dayCls = ' sun';
-    html += `<th colspan="${SLOTS.length}" class="${dayCls}${todayCls}" style="border-bottom:none;font-size:0.8rem;">` +
-      `${fmtShort(d)}（${DAY_NAMES[dowIdx]}）</th>`;
-  });
-  html += '</tr>';
-
-  // Time slot header row
-  html += '<tr>';
-  pageDays.forEach(() => {
-    SLOTS.forEach(slot => {
-      // Show only hour marks to save space
-      const label = slot.endsWith(':00') ? slot.replace(':00','') : '';
-      html += `<th style="font-size:0.65rem;padding:2px;min-width:28px;">${label}</th>`;
-    });
+  let html = '<thead><tr><th class="time-col">名前</th>';
+  SLOTS.forEach(slot => {
+    html += `<th>${slot}</th>`;
   });
   html += '</tr></thead><tbody>';
 
-  // Member rows
   members.forEach((m, mi) => {
+    const key = currentDayDate + '_' + mi;
+    const val = shifts[key] || '';
     html += `<tr><td class="time-cell">${esc(m.name)}</td>`;
-    pageDays.forEach(d => {
-      const dateStr = fmt(d);
-      const key = dateStr + '_' + mi;
-      const val = shifts[key] || '';
-      SLOTS.forEach(slot => {
-        const isOn = val.split(',').includes(slot);
-        const cls = isOn ? 'slot on' : 'slot off';
-        html += `<td class="${cls}" data-mi="${mi}" data-slot="${slot}" data-date="${dateStr}" onclick="toggleSlot(this)"></td>`;
-      });
+    SLOTS.forEach(slot => {
+      const isOn = val.split(',').includes(slot);
+      const cls = isOn ? 'slot on' : 'slot off';
+      html += `<td class="${cls}" data-mi="${mi}" data-slot="${slot}" data-date="${currentDayDate}" onclick="toggleSlot(this)"></td>`;
     });
     html += '</tr>';
   });
