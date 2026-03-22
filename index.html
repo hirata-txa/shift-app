@@ -494,17 +494,17 @@ function closeDayView() {
 
 function renderDayTable() {
   const table = document.getElementById('dayTable');
-  let html = '<thead><tr><th class="time-col">時間</th>';
-  members.forEach(m => {
-    html += `<th>${esc(m.name)}</th>`;
+  let html = '<thead><tr><th class="time-col">名前</th>';
+  SLOTS.forEach(slot => {
+    html += `<th>${slot}</th>`;
   });
   html += '</tr></thead><tbody>';
 
-  SLOTS.forEach(slot => {
-    html += `<tr><td class="time-cell">${slot}</td>`;
-    members.forEach((m, mi) => {
-      const key = currentDayDate + '_' + mi;
-      const val = shifts[key] || '';
+  members.forEach((m, mi) => {
+    const key = currentDayDate + '_' + mi;
+    const val = shifts[key] || '';
+    html += `<tr><td class="time-cell">${esc(m.name)}</td>`;
+    SLOTS.forEach(slot => {
       const isOn = val.split(',').includes(slot);
       const cls = isOn ? 'slot on' : 'slot off';
       html += `<td class="${cls}" data-mi="${mi}" data-slot="${slot}" onclick="toggleSlot(this)"></td>`;
