@@ -269,6 +269,82 @@
 
   th.today { background: #fff3bf; color: #e67700; }
   .app-screen { display: none; }
+
+  /* ===== Feedback ===== */
+  .feedback-btn {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 300;
+  }
+  .feedback-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 400;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .feedback-panel.open { display: flex; }
+  .feedback-sheet {
+    background: var(--card);
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px;
+  }
+  .feedback-sheet h2 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .feedback-sheet h2 button {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .feedback-sheet textarea {
+    width: 100%;
+    height: 120px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.9rem;
+    resize: none;
+    font-family: inherit;
+  }
+  .feedback-sheet textarea:focus { border-color: var(--primary); outline: none; }
+  .feedback-send {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .feedback-sent {
+    text-align: center;
+    color: var(--success);
+    font-size: 0.9rem;
+    margin-top: 8px;
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -310,6 +386,18 @@
     <h2>メンバー管理 <button onclick="closeMemberPanel()">×</button></h2>
     <ul class="member-list" id="memberList"></ul>
     <button class="add-member" onclick="addMember()">+ メンバーを追加</button>
+  </div>
+</div>
+
+<!-- Feedback Button & Panel -->
+<button class="feedback-btn" id="feedbackBtn" onclick="openFeedback()">&#x1F4DD;</button>
+
+<div class="feedback-panel" id="feedbackPanel" onclick="if(event.target===this)closeFeedback()">
+  <div class="feedback-sheet">
+    <h2>改善希望・ご意見 <button onclick="closeFeedback()">×</button></h2>
+    <textarea id="feedbackText" placeholder="気づいたこと、改善してほしいことを書いてください"></textarea>
+    <button class="feedback-send" onclick="sendFeedback()">送信</button>
+    <div class="feedback-sent" id="feedbackSent">送信しました！</div>
   </div>
 </div>
 
@@ -580,6 +668,26 @@ async function renameMember(i, name) {
     body: { name }
   });
   showSyncStatus();
+}
+
+// ===== Feedback =====
+function openFeedback() {
+  document.getElementById('feedbackPanel').classList.add('open');
+  document.getElementById('feedbackText').value = '';
+  document.getElementById('feedbackSent').style.display = 'none';
+}
+function closeFeedback() {
+  document.getElementById('feedbackPanel').classList.remove('open');
+}
+async function sendFeedback() {
+  const msg = document.getElementById('feedbackText').value.trim();
+  if (!msg) return;
+  await sbFetch('feedback', 'POST', {
+    body: { passcode: passcode || 'anonymous', message: msg }
+  });
+  document.getElementById('feedbackText').value = '';
+  document.getElementById('feedbackSent').style.display = 'block';
+  setTimeout(() => closeFeedback(), 1500);
 }
 
 // ===== Init =====
