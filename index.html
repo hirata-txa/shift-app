@@ -411,9 +411,15 @@ async function doCreate() {
   renderWeek();
 }
 
-function doLogout() {
+async function doLogout() {
   localStorage.removeItem('shift-passcode');
   passcode = ''; members = []; shifts = {};
+  // ブラウザキャッシュ（Service Worker cache）をクリア
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  // Service Worker登録を解除
+  const regs = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(regs.map(r => r.unregister()));
   showLogin();
 }
 
